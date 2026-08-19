@@ -1,4 +1,4 @@
-# 🧬 CodeDNA
+# 🧬 CodeDNA - The DNA of your software
 
 > Discover the DNA of your software.
 
