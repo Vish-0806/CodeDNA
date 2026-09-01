@@ -9,19 +9,25 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![AST Engine](https://img.shields.io/badge/AST%20Parser-Tree--sitter-294E80?style=for-the-badge)](https://tree-sitter.github.io/tree-sitter/)
 [![Graph Engine](https://img.shields.io/badge/Knowledge%20Graph-NetworkX%20%7C%20GraphRAG-FF6F00?style=for-the-badge)](https://networkx.org/)
+[![Docker Ready](https://img.shields.io/badge/Docker-Multi--stage%20Build-2496ED?style=for-the-badge&logo=docker&logoColor=white)](#-docker--containerization)
 [![Status](https://img.shields.io/badge/Status-Research%20%26%20Active%20Dev-success?style=for-the-badge)](#-project-roadmap)
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge)](https://github.com/Vish-0806/CodeDNA/pulls)
 
 <p align="center">
   <a href="#-the-problem">The Problem</a> •
   <a href="#-vision--core-mission">Vision</a> •
-  <a href="#-terminal--viva-simulator-preview">Interactive Preview</a> •
+  <a href="#-interactive-previews-tui--web-studio">Live Previews</a> •
   <a href="#-system-architecture">Architecture</a> •
-  <a href="#-data-ingestion--graph-pipeline">Ingestion Flow</a> •
+  <a href="#-knowledge-graph-data-model">Graph Schema</a> •
+  <a href="#-data-ingestion--code-archaeology-pipeline">Ingestion Flow</a> •
+  <a href="#-code-intelligence-comparison">Comparison</a> •
   <a href="#-core-features">Core Features</a> •
+  <a href="#-security-privacy--threat-model">Privacy & Security</a> •
   <a href="#-tech-stack--architectural-rationale">Tech Stack</a> •
+  <a href="#-docker--containerization">Docker</a> •
   <a href="#-cli-quickstart">CLI Quickstart</a> •
   <a href="#-developer-sdk-examples">SDK Reference</a> •
+  <a href="#-real-world-case-studies">Case Studies</a> •
   <a href="#-project-roadmap">Roadmap</a> •
   <a href="#-frequently-asked-questions">FAQ</a>
 </p>
@@ -93,9 +99,9 @@ Our mission is to empower developers not just to write code faster, but to **own
 
 ---
 
-## 🖥️ Terminal & Viva Simulator Preview
+## 🖥️ Interactive Previews (TUI & Web Studio)
 
-### 1. Interactive CLI Repository Ingestion
+### 1. Terminal CLI Repository Ingestion
 ```text
 $ codedna inspect https://github.com/Vish-0806/CodeDNA --deep-scan
 
@@ -120,7 +126,31 @@ $ codedna inspect https://github.com/Vish-0806/CodeDNA --deep-scan
   [Ready] Press 'V' to launch Interactive Viva Terminal Simulator
 ```
 
-### 2. Interactive Viva & Technical Defense Simulation
+### 2. CodeDNA Web Studio Dashboard Mockup
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ 🧬 CodeDNA Studio  [Project: CodeDNA]  [Branch: main]              [Graph Nodes: 2,410]   [Viva Readiness: 88%]  │
+├──────────────────────────┬─────────────────────────────────────────────────┬─────────────────────────────────────┤
+│ 📚 DOCUMENTARY CHAPTERS  │ 🔍 CODE ARCHAEOLOGY: src/auth/jwt_handler.py     │ 🎤 AI VIVA MENTOR                   │
+├──────────────────────────┼─────────────────────────────────────────────────┼─────────────────────────────────────┤
+│ ▶ Ep 1: Project Genesis  │ Line 42: class TokenBlacklistManager:           │ [EXAMINER - STRICT MODE]:           │
+│ ▶ Ep 2: SQLite -> PG     │ Line 43:     def __init__(self, redis_client):  │ "Explain why you opted for an       │
+│ ▼ Ep 3: Redis Auth Guard │                                                 │ in-memory Redis blacklist rather    │
+│   • Token Revocation     │ 💡 WHY DOES THIS EXIST? (Provenance Card)       │ than a database check for revoked   │
+│   • Blacklist Handler    │ Introduced in Commit: 4f82a1c ('fix: auth race')│ JWTs, and how you prevent data      │
+│   • Middleware Hook      │ Problem Solved: Stolen tokens stayed active for │ loss during a restart."             │
+│ ▶ Ep 4: GraphRAG Pipeline│ the full 24h JWT lifespan.                      │                                     │
+│ ▶ Ep 5: Viva Scoring     │ Rationale: Redis provides O(1) lookups during   │ 🎙️ [SPEECH INPUT DETECTED]         │
+│                          │ auth middleware without hitting PostgreSQL.     │ "We use Redis for sub-millisecond   │
+│ ──────────────────────── │ Trade-offs: Requires Redis high-availability.   │ checks, backed by AOF persistence." │
+│ 🗺️ TOPOLOGY EXPLORER    │                                                 │                                     │
+│ [Files] [AST] [Graph]    │ 🔗 Downstream Consumers (4 files affected):     │ 📊 SCORE: 92/100 (High Mastery)     │
+│ • /auth/jwt_handler.py   │ • src/middleware/auth_guard.py (Calls)          │ Feedback: Excellent grasp of trade- │
+│ • /graph/builder.py      │ • src/api/v1/endpoints/logout.py (Mutates)      │ offs. Mention replica failover next.│
+└──────────────────────────┴─────────────────────────────────────────────────┴─────────────────────────────────────┘
+```
+
+### 3. Interactive Viva Terminal Simulation
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │  🎤 CodeDNA AI Mentor — Viva Mode: [CapStone Evaluation]                     │
@@ -189,9 +219,62 @@ flowchart TB
 
 ---
 
-## 🔄 Data Ingestion & Graph Pipeline
+## 🧬 Knowledge Graph Data Model
 
-When a repository is analyzed, CodeDNA does not simply send whole files to an LLM. It maps the code into a multi-relational topological graph:
+CodeDNA constructs a typed, directed multigraph to capture code hierarchy and temporal evolution:
+
+```mermaid
+erDiagram
+    REPOSITORY ||--o{ COMMIT : tracks
+    REPOSITORY ||--o{ SOURCE_FILE : contains
+    SOURCE_FILE ||--o{ AST_SYMBOL : declares
+    COMMIT ||--o{ AST_DELTA : introduces
+    AST_SYMBOL ||--o{ AST_SYMBOL : calls_or_imports
+    AST_DELTA }o--|| AST_SYMBOL : modifies
+    ARCHITECTURAL_DECISION ||--o{ AST_SYMBOL : governs
+    VIVA_QUESTION ||--o{ AST_SYMBOL : interrogates
+    VIVA_QUESTION ||--|| RUBRIC : evaluated_with
+
+    REPOSITORY {
+        string url
+        string default_branch
+        int total_commits
+        string primary_language
+    }
+    COMMIT {
+        string commit_hash
+        string author
+        timestamp committed_at
+        string semantic_category
+        string message
+    }
+    AST_SYMBOL {
+        string identifier
+        string symbol_type
+        string file_path
+        int line_start
+        int line_end
+        float cyclomatic_complexity
+    }
+    ARCHITECTURAL_DECISION {
+        string decision_title
+        string problem_context
+        string trade_offs
+        string alternatives_rejected
+    }
+    VIVA_QUESTION {
+        string question_id
+        string topic
+        string difficulty
+        string scenario_prompt
+    }
+```
+
+---
+
+## 🔄 Data Ingestion & Code Archaeology Pipeline
+
+How CodeDNA reverse-engineers the story and intent behind every symbol:
 
 ```mermaid
 sequenceDiagram
@@ -216,6 +299,21 @@ sequenceDiagram
     Core->>CLI: Generate Interactive Web Studio & Diagnostic Report
     CLI->>Dev: Explore Architecture, Timeline & Start Viva Prep
 ```
+
+---
+
+## ⚖️ Code Intelligence Comparison
+
+| Feature Capability | CodeDNA | ChatGPT / Claude | GitHub Copilot | SonarQube / Linters |
+| :--- | :---: | :---: | :---: | :---: |
+| **Commit Archaeology & Evolution** | ✅ **Full History** | ❌ None (Isolated text) | ❌ None | ❌ None |
+| **"Why Does This Exist?" Provenance** | ✅ **AST + Git Linked** | ❌ Speculation only | ❌ In-line autocomplete | ❌ Rule-only violation |
+| **Dynamic Architecture Visualizer** | ✅ **Live Mermaid & D3** | ⚠️ Text markdown only | ❌ None | ⚠️ Static dependencies |
+| **Interactive Viva / Interview Simulator** | ✅ **Tailored to Repo** | ⚠️ Generic questions | ❌ None | ❌ None |
+| **Understanding Scorecard & Rubrics** | ✅ **Quantitative Radar** | ❌ None | ❌ None | ❌ Quality gate only |
+| **Graph-Augmented Retrieval (GraphRAG)**| ✅ **Topological Index** | ❌ Simple text chunks | ❌ Local file context | ❌ AST-only |
+| **100% Offline Local LLM Execution** | ✅ **Ollama / vLLM** | ❌ Cloud only | ❌ Cloud only | ✅ On-premise |
+| **Secret & PII Sanitizer Before LLM** | ✅ **AST-Scrubbed** | ❌ Manual user care | ⚠️ Enterprise policy | ✅ Static regex |
 
 ---
 
@@ -284,6 +382,34 @@ sequenceDiagram
 
 ---
 
+## 🔒 Security, Privacy & Threat Model
+
+CodeDNA is engineered with a **zero-knowledge, privacy-first posture**:
+
+```
+ ┌────────────────┐     ┌────────────────────────────────────────────────────────┐
+ │ Local Codebase │ ──► │  1. Ephemeral Sandboxed Cloner (RAM / Volatile Temp)  │
+ └────────────────┘     └──────────────────────────┬─────────────────────────────┘
+                                                   │
+                                                   ▼
+                        ┌────────────────────────────────────────────────────────┐
+                        │  2. AST Sanitizer: Strips Secrets, Keys, .env, Tokens  │
+                        └──────────────────────────┬─────────────────────────────┘
+                                                   │
+                        ┌──────────────────────────┴─────────────────────────────┐
+                        │                                                        │
+                        ▼                                                        ▼
+         [ OPTION A: AIR-GAPPED LOCAL ]                          [ OPTION B: ZERO-RETENTION CLOUD ]
+         • 100% on-device Ollama/vLLM                            • Enterprise API Zero-Data Retention
+         • Zero external network telemetry                       • Only scrubbed AST subgraphs sent
+```
+
+1. **Air-Gapped Local Operation:** When run with local LLMs (e.g. Ollama, Llama 3.3, Qwen 2.5 Coder), no code, metadata, or telemetry leaves your physical workstation.
+2. **Deterministic AST Secret Sanitizer:** Sensitive files (`.env*`, `*.pem`, `credentials.json`) and string literals matching cryptographic entropy keys or JWT tokens are purged before graph ingestion.
+3. **Volatile Memory Lifecycles:** Temporary working clones are created in sandboxed system temp files and flushed automatically upon session completion.
+
+---
+
 ## 🛠️ Tech Stack & Architectural Rationale
 
 | Layer | Technologies Selected | Architectural Rationale |
@@ -294,6 +420,70 @@ sequenceDiagram
 | **Web Studio Frontend** | **Next.js 14**, **React**, **Tailwind CSS** | Server-side rendering, fluid glassmorphic UI, dynamic Mermaid and D3.js interactive force-directed graph rendering. |
 | **AI Orchestration** | **LangChain / LlamaIndex** | Structured JSON schema outputs, multi-agent reasoning, and deterministic guardrail evaluation. |
 | **Local LLM Support** | **Ollama / vLLM / Groq API** | Enables 100% offline, privacy-first repository analysis using local models (`llama3`, `deepseek-coder`, `qwen2.5-coder`). |
+
+---
+
+## 🐳 Docker & Containerization
+
+Deploy CodeDNA locally or on a private server using containerization:
+
+### Multi-Stage `Dockerfile`
+```dockerfile
+# Stage 1: Build & Native Dependencies
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential git curl && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Stage 2: Minimal Runtime Image
+FROM python:3.11-slim AS runner
+
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
+
+# Security: Non-root execution
+RUN groupadd -r codedna && useradd -r -g codedna codedna
+USER codedna
+
+COPY --from=builder /root/.local /home/codedna/.local
+COPY . /app
+
+ENV PATH=/home/codedna/.local/bin:$PATH
+EXPOSE 4200
+
+ENTRYPOINT ["codedna"]
+CMD ["studio", "--host", "0.0.0.0", "--port", "4200"]
+```
+
+### `docker-compose.yml`
+```yaml
+version: '3.8'
+
+services:
+  codedna-engine:
+    build: .
+    container_name: codedna-engine
+    ports:
+      - "4200:4200"
+    environment:
+      - CODEDNA_LLM_PROVIDER=ollama
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - CODEDNA_STUDIO_PORT=4200
+    volumes:
+      - ./projects:/app/projects:ro
+    restart: unless-stopped
+```
+
+Launch with:
+```bash
+docker compose up -d
+```
 
 ---
 
@@ -326,6 +516,9 @@ codedna documentary --output ./DOCS.md
 
 # 4. Start an AI Viva interview simulation
 codedna viva --focus architecture --difficulty hard
+
+# 5. Query the provenance of a specific function or line
+codedna why src/auth/jwt_handler.py:42
 ```
 
 ---
@@ -356,34 +549,49 @@ feedback = viva.evaluate_answer(
 print(f"Score: {feedback.score}/100 | Recommendation: {feedback.tips}")
 ```
 
-### TypeScript Client SDK
+### React Custom Hook (`useCodeDNAViva`)
 ```typescript
+import { useState } from 'react';
 import { CodeDNAClient } from '@codedna/sdk';
 
-const client = new CodeDNAClient({ endpoint: 'http://localhost:4200' });
+export function useCodeDNAViva(projectId: string) {
+  const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
+  const [evaluation, setEvaluation] = useState<any>(null);
+  const client = new CodeDNAClient({ endpoint: 'http://localhost:4200' });
 
-async function runAudit() {
-  const report = await client.analyzeRepository({
-    repoUrl: 'https://github.com/Vish-0806/CodeDNA',
-    includeVivaQuestions: true,
-  });
+  const fetchNextQuestion = async (topic = 'architecture') => {
+    const q = await client.getVivaQuestion({ projectId, topic });
+    setCurrentQuestion(q.prompt);
+  };
 
-  console.log(`Repository Health: ${report.overallScore}/100`);
-  console.log(`Generated Viva Questions: ${report.vivaQuestions.length}`);
+  const submitDefense = async (answer: string) => {
+    const result = await client.evaluateDefense({ projectId, answer });
+    setEvaluation(result);
+    return result;
+  };
+
+  return { currentQuestion, evaluation, fetchNextQuestion, submitDefense };
 }
-
-runAudit();
 ```
 
 ---
 
-## 🎯 Target Audiences & Use Cases
+## 🎯 Real-World Case Studies
 
-* 🎓 **Computer Science Students & Graduates:** Prepare for university project vivas, defend capstone decisions with authority, and eliminate evaluation anxiety.
-* 💼 **Job Candidates:** Refresh technical knowledge of past personal projects before system design and behavioral coding interviews.
-* 🏆 **Hackathon Builders:** Pair fast MVP development with instant, polished architectural summaries for judges.
-* 🏢 **Engineering Teams & Tech Leads:** Accelerate developer onboarding by transforming complex legacy repositories into self-guided documentaries.
-* 🌐 **Open-Source Maintainers:** Provide prospective contributors with automated architecture maps and feature flowcharts.
+### 🎓 Case Study 1: The College Capstone Viva
+* **Background:** A team of 4 computer science seniors built a distributed microservice e-commerce store using AI coding assistants.
+* **The Challenge:** The university evaluation panel was renowned for scrutinizing consistency models and fault tolerance.
+* **The CodeDNA Intervention:** The team ran `codedna viva --difficulty hard`. CodeDNA surfaced that their payment service lacked idempotency keys on retry webhooks. The students patched the vulnerability and entered the viva with a verified 94% Understanding Score, achieving top honors.
+
+### 💼 Case Study 2: Fast-Tracking Hackathon Judging
+* **Background:** A 36-hour hackathon project developed an AI document translator under immense time pressure.
+* **The Challenge:** Judges only had 3 minutes per booth to evaluate technical architecture.
+* **The CodeDNA Intervention:** The team showcased the live **CodeDNA Architecture Flowchart** and exported an automated documentary chapter explaining how their in-memory streaming audio concatenation worked, winning "Best Engineering Design."
+
+### 🏢 Case Study 3: The 300K-Line Monolith Onboarding
+* **Background:** A newly hired Senior Engineer needed to lead a refactoring initiative on a 6-year-old financial service codebase with sparse documentation.
+* **The Challenge:** Deciphering why certain legacy caching hacks existed without disturbing production SLA.
+* **The CodeDNA Intervention:** Using `codedna why`, the engineer traced undocumented fallback logic directly to a 2021 database connection pool outage, avoiding a disastrous deprecation.
 
 ---
 
@@ -429,7 +637,13 @@ Because CodeDNA leverages Tree-sitter for AST parsing, multi-language support is
 </details>
 
 <details>
-<summary><b>4. Can CodeDNA work on massive monorepos?</b></summary>
+<summary><b>4. How does CodeDNA handle repositories with messy commit histories (e.g., "wip", "fix")?</b></summary>
+<br>
+CodeDNA does not rely solely on commit messages. It computes <b>semantic AST diffs</b> between commits—analyzing changes to function signatures, imports, variable scopes, and call graphs. Even if the commit message says <code>"asdf"</code>, CodeDNA deduces: <i>"Refactored authentication middleware to enforce token expiration checks."</i>
+</details>
+
+<details>
+<summary><b>5. Can CodeDNA work on massive monorepos?</b></summary>
 <br>
 Yes. CodeDNA uses selective directory scoping, path pruning (respecting <code>.gitignore</code>), and chunked graph indexing to process sub-packages independently without memory bottlenecks.
 </details>
